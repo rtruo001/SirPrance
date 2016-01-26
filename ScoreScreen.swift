@@ -6,17 +6,25 @@
 //  Copyright © 2015 Vent Origins. All rights reserved.
 //
 
-import iAd
+//import iAd
 import UIKit
 import AVFoundation
+import GoogleMobileAds
 
-class ScoreScreen: UIViewController, ADBannerViewDelegate {
+// If using iADs
+//class ScoreScreen: UIViewController, ADBannerViewDelegate {
+class ScoreScreen: UIViewController, GADBannerViewDelegate {
     
     // MARK: Private Variables
     
     // UI Views
     private var bannerView: UIImageView!
-    private var adView: ADBannerView!
+
+    // IAd
+//    private var adView: ADBannerView!
+    // Admob
+    private var adView: GADBannerView!
+    
     private var scoreTextView: UITextView!
     private var highestScoreTextView: UITextView!
     private var replayButtonView: UIButton!
@@ -80,33 +88,59 @@ class ScoreScreen: UIViewController, ADBannerViewDelegate {
     }
     
     @objc func onApplicationActive() {
+        print("Active")
+        addButtonTargets()
         SirPranceState.ifInActiveState = true
         Sound.soundObj.getScoreScreenMusic()?.play()
     }
     
     @objc func onApplicationBackground() {
+        print("Background")
+        removeButtonTargets()
         SirPranceState.ifInActiveState = false
         Sound.soundObj.stopMusic()
     }
     
-    // MARK: ADs event handlers
+    // MARK: iADs event handlers
     
-    func bannerViewActionShouldBegin(banner: ADBannerView!, willLeaveApplication willLeave: Bool) -> Bool {
-        // When ad is tapped while in the middle of leaving the score screen view
-        if (ifFadingOut) {
-            return false
-        }
-        
-        // Tap to view the ad
-        removeButtonTargets()
-        Sound.soundObj.stopMusic()
-        return true
+//    func bannerViewActionShouldBegin(banner: ADBannerView!, willLeaveApplication willLeave: Bool) -> Bool {
+//        // When ad is tapped while in the middle of leaving the score screen view
+//        if (ifFadingOut) {
+//            return false
+//        }
+//        
+//        // Tap to view the ad
+//        removeButtonTargets()
+//        Sound.soundObj.stopMusic()
+//        return true
+//    }
+//    
+//    func bannerViewActionDidFinish(banner: ADBannerView!) {
+//        // Return back to the App after exiting app
+//        addButtonTargets()
+//        Sound.soundObj.getScoreScreenMusic()?.play()
+//    }
+//    
+//    func bannerViewDidLoadAd(banner: ADBannerView!) {
+//        self.adView?.hidden = false
+//    }
+//    
+//    func bannerView(banner: ADBannerView!, didFailToReceiveAdWithError error: NSError!) {
+//        self.adView?.hidden = true
+//    }
+    
+    // MARK: ADMOB event handlers
+    
+    func adViewDidReceiveAd(bannerView: GADBannerView!) {
+        // If the ad is loaded, reveals the ad
+        adView.hidden = false
     }
     
-    func bannerViewActionDidFinish(banner: ADBannerView!) {
-        // Return back to the App after exiting app
-        addButtonTargets()
-        Sound.soundObj.getScoreScreenMusic()?.play()
+    // Actually not called, UIApplicationBackground actually gets called over this function
+    func adViewWillPresentScreen(bannerView: GADBannerView!) {
+        // When the game exits to the full screen ad
+        print("Leaving to Ad")
+        onApplicationBackground()
     }
     
     // MARK: Init functions
@@ -122,13 +156,32 @@ class ScoreScreen: UIViewController, ADBannerViewDelegate {
     }
     
     private func bannerInit() {
+        adView = GADBannerView.init(adSize: kGADAdSizeBanner)
+        
+//        IAd
+//        adView = GADBannerView(frame: CGRect.zero)
+
         // Initializes the ad, the size of the ad is built during runtime
-        adView = ADBannerView(frame: CGRect.zero)
         adView.center = CGPoint(x: screenSize.width / 2, y: adView.frame.size.height / 2)
         // Used for when ad is loading, it will has the same color as the banner
         adView.backgroundColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0)
         // Need this line for ads to call the event functions
+
+//        IAd
+//        adView = ADBannerView(frame: CGRect.zero)
+//        self.canDisplayBannerAds = true
+//        self.adView?.delegate = self
+//        self.adView?.hidden = true
+        
+        print("Google Mobile Ads SDK version: " + GADRequest.sdkVersion())
+        adView.adUnitID = "ca-app-pub-3940256099942544/2934735716"
         self.adView?.delegate = self
+        adView.rootViewController = self
+        self.adView?.hidden = true
+
+        let request = GADRequest()
+        request.testDevices = ["kGADSimulatorID"]
+        adView.loadRequest(request)
         
         // Arguments for the banner
         let bannerWidth = screenSize.width
