@@ -173,8 +173,13 @@ class ScoreScreen: UIViewController, GADBannerViewDelegate {
 //        self.adView?.delegate = self
 //        self.adView?.hidden = true
         
+
         print("Google Mobile Ads SDK version: " + GADRequest.sdkVersion())
-        adView.adUnitID = "ca-app-pub-3940256099942544/2934735716"
+        // TESTING
+//        adView.adUnitID = "ca-app-pub-3940256099942544/2934735716"
+        // REAL
+        adView.adUnitID = "ca-app-pub-3408865786344995/1644061664"
+
         self.adView?.delegate = self
         adView.rootViewController = self
         self.adView?.hidden = true
